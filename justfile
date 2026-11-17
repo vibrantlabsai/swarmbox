@@ -2,7 +2,7 @@
 # `nix develop` provides all three, or install them any other way.
 
 # Every static check and test; CI runs this.
-check: py-lint py-test docs-check
+check: py-lint py-test docs-check release-check-test
 
 # Ruff lint over the package, its tests and the forwarders.
 py-lint:
@@ -35,3 +35,7 @@ dist:
     cd compat/opendsec-harbor && uv build --out-dir ../../dist/opendsec-harbor
     find dist -name .gitignore -delete # uv build drops one per dir; only packages get uploaded
     uvx twine@7.0.0 check --strict dist/*/*
+
+# dev/check-release.sh against throwaway trees: what it must accept and refuse.
+release-check-test:
+    ./dev/test-check-release.sh
