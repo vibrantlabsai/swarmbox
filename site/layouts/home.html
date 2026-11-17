@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="{{ site.Language.Locale }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ site.Title }}: {{ .Title }}</title>
+  <meta name="description" content="{{ site.Params.description }}">
+  {{- if site.Params.noindex }}
+  <meta name="robots" content="noindex, nofollow">
+  {{- end }}
+  {{- /* The page has its own dark theme; ask Dark Reader not to repaint it. */}}
+  <meta name="darkreader-lock">
+  <link rel="icon" href="{{ "favicon.svg" | relURL }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  {{- with resources.Get "css/site.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+  {{- end }}
+  <script>
+    // Apply a saved theme before first paint; otherwise follow the system.
+    try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="{{ "" | relURL }}"><img src="{{ "images/logo.svg" | relURL }}" alt="" width="24" height="24">swarmbox</a>
+    <span class="pill">beta</span>
+    <button class="theme" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
+    </button>
+  </header>
+  <main>
+    <p class="eyebrow">Open-source Sandboxes for RL rollouts</p>
+    <h1>{{ .Title }}</h1>
+    {{ .Content }}
+  </main>
+  <footer>
+    <p>swarmbox is built by Vibrant Labs. The SDK and its Harbor provider are <a href="https://pypi.org/project/swarmbox-sdk/">swarmbox-sdk</a> on PyPI; the source is on <a href="https://github.com/vibrantlabsai/swarmbox">GitHub</a>.</p>
+  </footer>
+  <script>
+    document.querySelector(".theme").addEventListener("click", () => {
+      const root = document.documentElement;
+      const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      root.dataset.theme = dark ? "light" : "dark";
+      try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
+    });
+    document.querySelectorAll(".code .copy").forEach((b) => b.addEventListener("click", async () => {
+      // Copy the code as the reader would type it. The clipboard API exists
+      // only on secure origins and can be refused, so say when it fails.
+      try {
+        await navigator.clipboard.writeText(b.closest(".code").querySelector("code").innerText.trimEnd());
+        b.textContent = "Copied";
+      } catch (e) {
+        b.textContent = "Select and copy";
+      }
+      setTimeout(() => (b.textContent = "Copy"), 1500);
+    }));
+  </script>
+</body>
+</html>

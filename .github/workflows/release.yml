@@ -1,0 +1,88 @@
+name: release
+
+# Pushing a tag vX.Y.Z publishes the Python packages to PyPI at that version:
+# swarmbox-sdk (the client, with the Harbor provider as its `harbor` extra),
+# and opendsec and opendsec-harbor, the names the project had before it was
+# renamed (compat/), which install it. It goes through PyPI trusted
+# publishing: PyPI trusts each package's publish job in its own environment
+# (pypi-swarmbox-sdk, pypi-opendsec, pypi-opendsec-harbor), so no token is
+# stored anywhere. One environment per package because PyPI lets one
+# publisher configuration create only one project. A version can never be
+# reused on PyPI, so nothing is built unless the tag matches every package's
+# version and each pin on the package it depends on.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  # Builds with uv. Holds no publishing credentials.
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+      - name: Tag matches every version and every pin
+        run: dev/check-release.sh "${GITHUB_REF_NAME#v}"
+      - name: Build
+        run: uvx --from rust-just just dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  # Only these jobs can mint the OIDC token PyPI accepts, one per package.
+  # Order: the SDK, then the two packages that keep the old names working by
+  # depending on it.
+  publish-swarmbox-sdk:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi-swarmbox-sdk
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          packages-dir: dist/swarmbox-sdk/
+          # Re-running a release that failed halfway uploads only what's
+          # missing; the builds are reproducible, so nothing differs.
+          skip-existing: true
+
+  # The names the project was published under before it was renamed
+  # (compat/): each installs the new package.
+  publish-opendsec:
+    needs: publish-swarmbox-sdk
+    runs-on: ubuntu-latest
+    environment: pypi-opendsec
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          packages-dir: dist/opendsec/
+          skip-existing: true
+
+  publish-opendsec-harbor:
+    needs: publish-opendsec
+    runs-on: ubuntu-latest
+    environment: pypi-opendsec-harbor
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          packages-dir: dist/opendsec-harbor/
+          skip-existing: true

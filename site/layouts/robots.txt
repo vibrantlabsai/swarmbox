@@ -1,0 +1,8 @@
+{{- /* Search engines stay out while the site is a beta (noindex in hugo.toml). */ -}}
+User-agent: *
+{{ if site.Params.noindex -}}
+Disallow: /
+{{- else -}}
+Disallow:
+Sitemap: {{ "sitemap.xml" | absURL }}
+{{- end }}

@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # The checks without Nix, as an outside contributor runs them: uv, just
+  # (from PyPI) and a pinned Hugo. The flake is for those who want it.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v6
+      - name: Hugo, the version the flake pins
+        run: dev/install-hugo.sh
+      - name: just check
+        run: uvx --from rust-just just check
