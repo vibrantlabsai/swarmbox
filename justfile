@@ -4,16 +4,14 @@
 # Every static check and test; CI runs this.
 check: py-lint py-test docs-check release-check-test
 
-# Ruff lint over the package, its tests and the forwarders.
+# Ruff lint over the package and its tests.
 py-lint:
     uvx ruff@0.14.3 check .
 
-# The SDK imports without the harbor extra; the tests run with it; the
-# forwarders (compat/) still are the new package under the old names.
+# The SDK imports without the harbor extra; the tests run with it.
 py-test:
     uv run --frozen --exact --no-dev python -c "import swarmbox_sdk"
     uv run --frozen --extra harbor pytest -q
-    cd compat/opendsec-harbor && uv run --frozen pytest -q
 
 # Serve the docs site at http://localhost:1313, rebuilding on change.
 docs:
@@ -25,16 +23,12 @@ docs-check:
     hugo -s site --panicOnWarning --renderToMemory
     uv run --no-project python dev/check-doc-links.py
 
-# Build the packages into dist/<package>/, as the release workflow publishes
-# them (one PyPI upload per package): the SDK, and the two packages that keep
-# the names they had before the rename.
+# Build the package into dist/, as the release workflow publishes it.
 dist:
     rm -rf dist
-    uv build --out-dir dist/swarmbox-sdk
-    cd compat/opendsec && uv build --out-dir ../../dist/opendsec
-    cd compat/opendsec-harbor && uv build --out-dir ../../dist/opendsec-harbor
-    find dist -name .gitignore -delete # uv build drops one per dir; only packages get uploaded
-    uvx twine@7.0.0 check --strict dist/*/*
+    uv build --out-dir dist
+    rm -f dist/.gitignore # uv build drops one; only packages get uploaded
+    uvx twine@7.0.0 check --strict dist/*
 
 # dev/check-release.sh against throwaway trees: what it must accept and refuse.
 release-check-test:

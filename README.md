@@ -71,7 +71,7 @@ More: [Run a Harbor job](https://github.com/vibrantlabsai/swarmbox/blob/main/doc
 
 - Hosted test bed walkthrough, from token to rollouts: https://swarmbox.vibrantlabs.com (source: [`site/`](https://github.com/vibrantlabsai/swarmbox/tree/main/site))
 - [Developer docs](https://github.com/vibrantlabsai/swarmbox/blob/main/docs/README.md): the World spec, Worlds and Sandboxes, the Harbor provider.
-- Renamed from opendsec: [`compat/`](https://github.com/vibrantlabsai/swarmbox/blob/main/compat/README.md) keeps the old package names working through 0.4.
+- Renamed from opendsec: [what to change](https://swarmbox.vibrantlabs.com/#if-you-used-opendsec).
 
 ## Contributing
 
