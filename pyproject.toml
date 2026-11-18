@@ -1,0 +1,45 @@
+[project]
+name = "swarmbox-sdk"
+version = "0.4.0"
+description = "Async Python client for swarmbox, open-source Sandboxes for RL rollouts, with a Harbor environment provider."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Vibrant Labs" }]
+requires-python = ">=3.12"
+keywords = ["sandbox", "reinforcement-learning", "rollouts", "evals", "agents", "harbor"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "httpx>=0.28.1",
+]
+
+[project.optional-dependencies]
+# The Harbor environment provider, swarmbox_sdk.harbor:SwarmboxEnvironment.
+# Tested against Marin's Harbor fork (0.8.1); upstream Harbor is the 0.5 target.
+harbor = [
+    "harbor>=0.8.1",
+    "pyyaml>=6.0.3",
+]
+
+[project.urls]
+Documentation = "https://swarmbox.vibrantlabs.com"
+Source = "https://github.com/vibrantlabsai/swarmbox"
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

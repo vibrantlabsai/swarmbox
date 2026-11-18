@@ -1,0 +1,18 @@
+# The swarmbox site: one page for people using the hosted API
+# (content/_index.md). Developer docs are Markdown in docs/, not built.
+#   just docs        serve at http://localhost:1313
+#   just docs-check  strict build, run by `just check`
+baseURL = "https://swarmbox.vibrantlabs.com/" # `just docs` serves on localhost regardless
+title = "swarmbox"
+locale = "en-us"
+enableRobotsTXT = true
+disableKinds = ["page", "section", "taxonomy", "term", "rss"]
+
+[markup.highlight]
+  noClasses = false # colors come from site.css, so they follow the theme
+
+[params]
+  description = "Open-source Sandboxes for RL rollouts. Bring your Harbor tasks and a token: the hosted test bed builds their images and runs 16 rollouts at once."
+  # Beta: the page carries `noindex` and robots.txt disallows everything,
+  # so search engines stay out until launch. Set false to launch.
+  noindex = true

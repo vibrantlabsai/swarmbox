@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ site.Title }}</title>
+  <meta name="robots" content="noindex">
+  {{- /* The site used to have many pages; send old links to the one there is. */}}
+  <meta http-equiv="refresh" content="0; url={{ "" | absURL }}">
+</head>
+<body><p>This page moved. <a href="{{ "" | absURL }}">Go to swarmbox</a>.</p></body>
+</html>

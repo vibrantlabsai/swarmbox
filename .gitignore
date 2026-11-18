@@ -1,0 +1,17 @@
+__pycache__/
+.venv/
+.direnv/
+.envrc
+.ruff_cache/
+.pytest_cache/
+
+# docs site build output
+site/public/
+site/resources/
+site/.hugo_build.lock
+
+# Python package builds (just dist)
+dist/
+
+# Harbor job output from the docs' examples
+jobs/

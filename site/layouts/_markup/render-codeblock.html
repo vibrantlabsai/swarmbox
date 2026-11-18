@@ -1,0 +1,8 @@
+{{- /* A code block with an optional filename (```python {filename="x.py"}) and,
+  unless it is example output (```text), a copy button. */ -}}
+{{- $output := eq .Type "text" -}}
+<div class="code{{ if $output }} output{{ end }}">
+  {{- with .Attributes.filename }}<div class="code-head">{{ . }}</div>{{ end }}
+  {{- if not $output }}<button class="copy" type="button">Copy</button>{{ end }}
+  {{ transform.Highlight .Inner .Type }}
+</div>

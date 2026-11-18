@@ -1,0 +1,45 @@
+name: docs
+
+# Builds the site (site/, one page for API users) and publishes it to GitHub
+# Pages, which serves it at swarmbox.vibrantlabs.com. Runs on every change to
+# the site that lands on main.
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "dev/install-hugo.sh", ".github/workflows/docs.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer push waits rather than cancelling one
+# that is mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Hugo, the version the flake pins
+        run: dev/install-hugo.sh
+      - name: Build
+        run: hugo -s site --minify --panicOnWarning -d "$PWD/public"
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: public/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
