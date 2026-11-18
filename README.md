@@ -65,16 +65,18 @@ To build on your own machine instead, set `SWARMBOX_REGISTRY` to a registry your
 
 Tasks may use only the compose keys `image`, `build`, `command`, `environment`, `volumes`, `expose`, `networks`, `healthcheck` and `depends_on`; anything else fails the trial before it starts rather than running it wrong.
 
-More: [Run a Harbor job](docs/run-a-harbor-job.md).
+More: [Run a Harbor job](https://github.com/vibrantlabsai/swarmbox/blob/main/docs/run-a-harbor-job.md).
 
 ## Docs
 
-- Hosted test bed walkthrough, from token to rollouts: https://swarmbox.vibrantlabs.com (source: [`site/`](site/))
-- [Developer docs](docs/README.md): the World spec, Worlds and Sandboxes, the Harbor provider.
-- Renamed from opendsec: [`compat/`](compat/README.md) keeps the old package names working through 0.4.
+- Hosted test bed walkthrough, from token to rollouts: https://swarmbox.vibrantlabs.com (source: [`site/`](https://github.com/vibrantlabsai/swarmbox/tree/main/site))
+- [Developer docs](https://github.com/vibrantlabsai/swarmbox/blob/main/docs/README.md): the World spec, Worlds and Sandboxes, the Harbor provider.
+- Renamed from opendsec: [`compat/`](https://github.com/vibrantlabsai/swarmbox/blob/main/compat/README.md) keeps the old package names working through 0.4.
 
 ## Contributing
 
-See [AGENTS.md](AGENTS.md) for how the repo is laid out, how to run the checks, and how docs and releases work. It is written for people and coding agents alike.
+See [AGENTS.md](https://github.com/vibrantlabsai/swarmbox/blob/main/AGENTS.md) for how the repo is laid out, how to run the checks, and how docs and releases work. It is written for people and coding agents alike.
 
 Licensed under Apache-2.0.
+
+<!-- This file is the PyPI page too: keep its links absolute. -->
