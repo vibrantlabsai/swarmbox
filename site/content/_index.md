@@ -172,7 +172,7 @@ Things to know when you move:
 - **If you push to a registry of your own** (`OPENDSEC_REGISTRY`), images now go to the repository `swarmbox/task-images`, not `opendsec/task-images`: they are pushed once more, and credentials scoped to the old repository need the new one.
 - **Finish or restart Harbor jobs first.** Harbor will not resume a job whose import path changed.
 - **Each trial's metrics file is now `swarmbox-agent.json`.** Earlier job directories keep `opendsec-agent.json`.
-- **You can move in two steps.** With 0.4.0 installed, the old import path and the `OPENDSEC_*` settings still work until 0.5.0, each with a `FutureWarning`; if both a new and an old setting are set, the new one wins. Do not upgrade `swarmbox-sdk` to 0.5 while your code still imports the old names: they stop at 0.4.
+- **The import names change at once; the settings can wait.** `opendsec` and `opendsec-harbor` stay at 0.3.0 and do not install swarmbox, so imports and the import path move to `swarmbox_sdk` together with the install. In `swarmbox-sdk` 0.4, the `OPENDSEC_*` settings and `except OpendsecError` still work until 0.5.0, with a `FutureWarning`; if both a new and an old setting are set, the new one wins.
 
 ## If something fails
 
