@@ -47,7 +47,7 @@ Every option can be set with `--ek key=value` on the Harbor command line, or wit
 | `registry` | `SWARMBOX_REGISTRY` | — (swarmbox builds the images) | A registry this machine builds images for and pushes them to, instead: see below |
 | `pull_registry` | `SWARMBOX_PULL_REGISTRY` | `registry`; `host.lima.internal:5001` when `registry` is `localhost:5001` | The same registry, as the nodes reach it |
 | `platform` | `SWARMBOX_PLATFORM` | This machine's architecture | With `registry`: the image platform, such as `linux/amd64`. It must match the nodes |
-| `ttl` | — | `3h` | Each trial World's lifetime limit |
+| `ttl` | — | `3h` | Each trial World's lifetime limit, at most `24h`. Also the longest a command may run when Harbor sets no timeout for it, such as an agent's run: see below |
 
 For example, against a remote apiserver:
 
@@ -55,6 +55,10 @@ For example, against a remote apiserver:
 uv run harbor run -p tasks/ -a oracle -n 32 -e swarmbox_sdk.harbor:SwarmboxEnvironment \
   --ek url=http://swarmbox.example.com:7700 -o jobs
 ```
+
+## Long agent runs
+
+Harbor runs an installed agent, such as `claude-code`, as one command with no timeout of its own, and enforces the agent's timeout itself (the task's `[agent] timeout_sec`). The provider lets such a command run until the World's `ttl`, so the agent's timeout is the one that ends it; a command Harbor does give a timeout gets that one. An agent that may run longer than 3 hours needs a longer `ttl`. When Harbor cancels a command at its timeout, the request is closed and swarmbox kills the command.
 
 ## Where images are built
 
