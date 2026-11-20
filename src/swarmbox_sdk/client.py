@@ -176,6 +176,14 @@ class Sandbox:
         return d
 
 
+# How long the platform lets an exec run when the request sets no timeout.
+PLATFORM_EXEC_TIMEOUT_S = 600.0
+# How much longer than an exec's timeout its HTTP request waits for the
+# answer: the platform kills a timed-out command, waits up to 30 s for it to
+# exit, then answers through the apiserver.
+EXEC_HTTP_MARGIN_S = 60.0
+
+
 @dataclass
 class ExecResult:
     exit_code: int
@@ -294,6 +302,16 @@ class Client:
         img.cached = cached and not force
         return img
 
+    def _exec_http_timeout(self, timeout: float | None) -> httpx.Timeout:
+        """The HTTP timeouts for an exec that may run `timeout` seconds (the
+        platform's default if None): the client's, but waiting for the answer
+        at least as long as the command may run, plus a margin."""
+        t = self._http.timeout
+        read = t.read
+        if read is not None:
+            read = max(read, (timeout or PLATFORM_EXEC_TIMEOUT_S) + EXEC_HTTP_MARGIN_S)
+        return httpx.Timeout(connect=t.connect, read=read, write=t.write, pool=t.pool)
+
     async def _request(self, method: str, path: str, **kw) -> dict:
         return self._json(await self._http.request(method, path, **kw), method, path)
 
@@ -340,7 +358,13 @@ class World:
         workdir: str | None = None,
         timeout: float | None = None,
     ) -> ExecResult:
-        """Run a command in a Sandbox. A string is run with `bash -lc`."""
+        """Run a command in a Sandbox. A string is run with `bash -lc`.
+
+        The platform kills it after `timeout` seconds (`ExecResult.timed_out`),
+        or after 10 minutes if None; there is no maximum. The request waits
+        for the answer that long and a minute more, whatever the client's
+        own timeout. Cancelling the call closes the request, and the platform
+        then kills the command."""
         if isinstance(command, str):
             command = ["bash", "-lc", command]
         body: dict = {"command": command, "env": env or {}}
@@ -349,7 +373,9 @@ class World:
         if timeout:
             body["timeout"] = timeout
         try:
-            res = await self._client._request("POST", self._path(sandbox, "exec"), json=body)
+            res = await self._client._request(
+                "POST", self._path(sandbox, "exec"), json=body, timeout=self._client._exec_http_timeout(timeout)
+            )
         except SwarmboxError:
             await self._raise_if_failed()
             raise

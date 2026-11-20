@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 from pathlib import Path
 
@@ -44,6 +45,10 @@ class SwarmboxEnvironment(BaseEnvironment):
             or ("host.lima.internal:5001" if self._registry == "localhost:5001" else self._registry)
         )
         self._ttl = kwargs.pop("ttl", "3h")
+        # An exec Harbor gives no timeout (an installed agent's run: Harbor
+        # times the agent itself, and may set no limit at all) may run as long
+        # as the World lives, rather than the platform's 10-minute default.
+        self._ttl_s = duration_s(self._ttl, "ttl")
         self._platform = kwargs.pop("platform", None)
         self._metrics: dict = {}
         self._started_at: float | None = None
@@ -197,9 +202,10 @@ class SwarmboxEnvironment(BaseEnvironment):
             env = self._merge_env(env)
         else:
             argv = ["sh", "-c", command]
-        res = await self.world.exec(sandbox, argv, env=env, workdir=cwd, timeout=timeout_sec)
+        timeout = timeout_sec or self._ttl_s
+        res = await self.world.exec(sandbox, argv, env=env, workdir=cwd, timeout=timeout)
         if res.timed_out:
-            raise RuntimeError(f"Command timed out after {timeout_sec} seconds")
+            raise RuntimeError(f"Command timed out after {timeout} seconds")
         return ExecResult(stdout=res.stdout, stderr=res.stderr, return_code=res.exit_code)
 
     async def upload_file(self, source_path, target_path):
@@ -228,6 +234,23 @@ class SwarmboxEnvironment(BaseEnvironment):
         self.logger.warning(
             f"swarmbox: stop_service({service!r}) is a no-op; Sandboxes cannot stop independently"
         )
+
+
+_DURATION_PART = re.compile(r"(\d+(?:\.\d*)?|\.\d+)(ns|us|µs|ms|h|m|s)")
+_DURATION_UNITS = {"h": 3600, "m": 60, "s": 1, "ms": 1e-3, "us": 1e-6, "µs": 1e-6, "ns": 1e-9}
+
+
+def duration_s(d: str | float, what: str) -> float:
+    """Seconds in a World spec duration: a number of seconds, or a Go
+    duration string such as "3h" or "1h30m"."""
+    try:
+        return float(d)
+    except ValueError:
+        pass
+    parts = _DURATION_PART.findall(d)
+    if not parts or "".join(n + u for n, u in parts) != d:
+        raise ValueError(f"swarmbox: {what} {d!r} is not a duration such as 90, \"90s\" or \"1h30m\"")
+    return sum(float(n) * _DURATION_UNITS[u] for n, u in parts)
 
 
 # How long a create refused for capacity (or never connected) is retried,

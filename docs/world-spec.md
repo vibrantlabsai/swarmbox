@@ -109,9 +109,26 @@ A duration is a Go duration string (`"500ms"`, `"90s"`, `"1h30m"`) or a number o
 
 A World that has ended stays readable for 5 minutes, then `GET` returns 404.
 
-Commands run in one Sandbox at a time: `POST /v1/worlds/{id}/sandboxes/{name}/exec`. An unknown World or Sandbox name returns 404.
+Commands run in one Sandbox at a time: `POST /v1/worlds/{id}/sandboxes/{name}/exec`, described [below](#exec). An unknown World or Sandbox name returns 404.
 
 A World belongs to the User who created it. `GET /v1/worlds` lists only your Worlds, and every call on another User's World returns the same 404 as a World that does not exist.
+
+## Exec
+
+`POST /v1/worlds/{id}/sandboxes/{name}/exec` runs one command in a Sandbox and returns when it ends:
+
+```json
+{"command": ["bash", "-lc", "pytest -q"], "env": {"CI": "1"}, "workdir": "/app", "timeout": 1800}
+```
+
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `command` | array of strings | yes | The process to run. No shell unless you start one |
+| `env` | object of strings | no | Extra environment variables, added to the Sandbox's |
+| `workdir` | string | no | Working directory. Defaults to the Sandbox's |
+| `timeout` | [duration](#durations) | no, default `10m` | How long the command may run before it is killed. There is no maximum, but the World's `ttl` still ends it |
+
+It returns `{"exit_code": 0, "stdout": "…", "stderr": "…"}`, plus `"timed_out": true` if the timeout killed it and `"truncated": true` if either stream passed 16 MiB (the rest is dropped). The request stays open for as long as the command runs, so give your HTTP client a read timeout longer than the command's; the SDK's `World.exec` does. If the request is closed first, the command is killed.
 
 ## Limits
 
