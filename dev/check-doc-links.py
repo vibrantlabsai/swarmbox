@@ -1,8 +1,9 @@
 """Fail on a broken relative link in the repo's Markdown.
 
-Developer docs (docs/) are plain Markdown linked by relative path, and no
-site build checks them, so this does: every relative link must name a file
-that exists, and a #fragment must match a heading in it (GitHub's anchors).
+The docs (docs/) are plain Markdown linked by relative path, read on GitHub
+as well as on the site, and the site build does not check #fragments, so
+this does: every relative link must name a file that exists, and a #fragment
+must match a heading in it (GitHub's anchors).
     uv run --no-project python dev/check-doc-links.py   (run by `just docs-check`)
 """
 

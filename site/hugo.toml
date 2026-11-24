@@ -1,18 +1,47 @@
-# The swarmbox site: one page for people using the hosted API
-# (content/_index.md). Developer docs are Markdown in docs/, not built.
+# The swarmbox site: the landing page (content/_index.md, layouts/index.html)
+# and the docs and API reference, which are the repo's docs/ folder mounted
+# as the /docs/ section (see [module] below).
 #   just docs        serve at http://localhost:1313
 #   just docs-check  strict build, run by `just check`
 baseURL = "https://swarmbox.vibrantlabs.com/" # `just docs` serves on localhost regardless
 title = "swarmbox"
 locale = "en-us"
 enableRobotsTXT = true
-disableKinds = ["page", "section", "taxonomy", "term", "rss"]
+disableKinds = ["taxonomy", "term", "rss"]
 
 [markup.highlight]
   noClasses = false # colors come from site.css, so they follow the theme
 
 [params]
-  description = "Open-source Sandboxes for RL rollouts. Bring your Harbor tasks and a token: the hosted test bed builds their images and runs 16 rollouts at once."
-  # Beta: the page carries `noindex` and robots.txt disallows everything,
+  description = "Sandboxes for agentic RL rollouts and evals. A fresh World for every rollout."
+  # Beta: every page carries `noindex` and robots.txt disallows everything,
   # so search engines stay out until launch. Set false to launch.
   noindex = true
+  # The live site's host. A docs link to it is a link within the site (the docs
+  # need the full address, because GitHub renders them too).
+  host = "swarmbox.vibrantlabs.com"
+  paper = "https://arxiv.org/abs/2609.22978"
+  github = "https://github.com/vibrantlabsai/swarmbox"
+  vibrantLabs = "https://vibrantlabs.com"
+  copyrightYear = "2026"
+  # The waitlist form (layouts/partials/modal.html) posts its fields as JSON
+  # to this URL. Empty: the form validates, then says it is not open yet.
+  # The endpoint refuses any field or choice it does not know, so a change
+  # to the form's fields needs the same change there.
+  waitlistEndpoint = "https://func-swarmbox-site.azurewebsites.net/waitlist"
+  # The docs menu's groups, in order; a page names its group in front matter.
+  docGroups = ["Get started", "Guides", "Concepts", "API reference", "Hosted test bed", "Reference"]
+
+# docs/ stays where it is (GitHub renders it, and the platform's spec test
+# reads docs/world-spec.md by path); the site builds it as /docs/. Its
+# README is the section's index page.
+[[module.mounts]]
+  source = "content"
+  target = "content"
+[[module.mounts]]
+  source = "../docs"
+  target = "content/docs"
+  files = ["! README.md"]
+[[module.mounts]]
+  source = "../docs/README.md"
+  target = "content/docs/_index.md"

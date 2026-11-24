@@ -1,0 +1,12 @@
+{{ define "main" }}
+<div class="shell">
+{{ partial "sidebar.html" . }}
+<main class="doc{{ if eq .Params.group "API reference" }} wide{{ end }}" id="main">
+{{ partial "crumbs.html" . }}
+<div class="prose{{ if .Params.steps }} steps-h{{ end }}">
+{{ .Content }}
+</div>
+{{ partial "pager.html" . }}
+</main>
+</div>
+{{ end }}

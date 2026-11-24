@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" class="swarmbox">
+<head>
+{{ partial "head.html" . }}
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+{{ partial "header.html" . }}
+{{ block "main" . }}{{ end }}
+{{ partial "footer.html" . }}
+</div>
+{{ partial "modal.html" . }}
+<script src="{{ "js/site.js" | relURL }}" defer></script>
+{{ if .Store.Get "mermaid" }}
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const nodes = Array.from(document.querySelectorAll('pre.mermaid'));
+nodes.forEach((n) => { n.dataset.src = n.textContent; });
+const draw = () => {
+  mermaid.initialize({ startOnLoad: false, theme: 'base', fontFamily: css('--sans'), themeVariables: {
+    primaryColor: css('--raised'), primaryTextColor: css('--ink'), primaryBorderColor: css('--accent'),
+    lineColor: css('--muted'), secondaryColor: css('--surface'), tertiaryColor: css('--surface'), fontSize: '14px' } });
+  nodes.forEach((n) => { n.removeAttribute('data-processed'); n.textContent = n.dataset.src; });
+  mermaid.run({ nodes });
+};
+draw();
+document.addEventListener('sb-theme', draw);
+</script>
+{{ end }}
+</body>
+</html>

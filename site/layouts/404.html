@@ -1,11 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{{ site.Title }}</title>
-  <meta name="robots" content="noindex">
-  {{- /* The site used to have many pages; send old links to the one there is. */}}
-  <meta http-equiv="refresh" content="0; url={{ "" | absURL }}">
-</head>
-<body><p>This page moved. <a href="{{ "" | absURL }}">Go to swarmbox</a>.</p></body>
-</html>
+{{ define "main" }}
+<main class="notfound" id="main">
+<div class="world" aria-hidden="true"></div>
+<h1 class="title">This World does not exist</h1>
+<p class="lede">The page you asked for is not here (404).</p>
+<div class="row"><a class="btn" href="{{ "/" | relURL }}">Go to the home page</a><a class="more" href="{{ "docs/" | relURL }}">Read the docs<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></div>
+</main>
+{{ end }}
