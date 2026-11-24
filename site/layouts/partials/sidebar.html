@@ -1,0 +1,12 @@
+<aside class="side" data-side>
+<button class="side-t" type="button" aria-expanded="false" aria-controls="side-nav"><span>Menu: {{ .Title }}</span><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<nav id="side-nav" aria-label="Docs">
+{{- $cur := . -}}
+{{- range partial "docsnav.html" . }}
+<p class="grp">{{ .group }}</p>
+{{- range .pages }}
+<a href="{{ .RelPermalink }}"{{ if eq .RelPermalink $cur.RelPermalink }} class="on" aria-current="page"{{ end }}>{{ .LinkTitle }}</a>
+{{- end }}
+{{- end }}
+</nav>
+</aside>

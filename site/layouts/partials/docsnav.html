@@ -1,0 +1,12 @@
+{{- /* The docs menu: every page of docs/, by group. params.docGroups orders
+  the groups; a page's front matter names its group and its weight in it. */ -}}
+{{- $nav := slice -}}
+{{- with site.GetPage "/docs" -}}
+  {{- $pages := .RegularPages -}}
+  {{- range site.Params.docGroups -}}
+    {{- with where $pages "Params.group" . -}}
+      {{- $nav = $nav | append (dict "group" (index . 0).Params.group "pages" .ByWeight) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $nav -}}

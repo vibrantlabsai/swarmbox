@@ -1,0 +1,20 @@
+<section class="sec center">
+<h2 class="title">Measured on the test bed</h2>
+<p class="body">Three measurements from the test bed, taken in November 2026 through its public endpoint.</p>
+<div class="meas">
+<div class="card big"><div class="statrow">
+<div class="txt"><span class="kick">Dataset and run</span><p>220 Harbor tasks from the public <a href="https://huggingface.co/datasets/FWeindel/validated-tasks" target="_blank" rel="noopener">validated-tasks</a> dataset, run with their reference solutions on two nodes, images already built.</p>
+<div class="facts"><div><b>220</b><span>tasks</span></div><div><b>32</b><span>at a time</span></div><div><b><small>under</small> 4</b><span>minutes</span></div><div><b>0</b><span>infrastructure errors</span></div></div></div>
+<div class="plot"><div class="units" role="img" aria-label="220 squares in rows of 32, one per task, all finished without an infrastructure error">{{ range seq 220 }}<i></i>{{ end }}</div>
+<span class="cap">Each square is one task and each row is 32, the number run at a time. All 220 finished without an infrastructure error.</span></div>
+</div></div>
+<div class="card"><span class="kick">Start time</span><div class="num">0.5<small>&nbsp;s</small></div><p>to start on a 3.9 GB image, against 48 s for a full pull</p>
+<div class="chart" role="img" aria-label="Bar chart to scale: start 0.5 seconds, full pull 48 seconds">
+<div class="hb"><span>Start</span><div><b title="Start: 0.5 s" style="width: 1.04%; background: var(--accent)"></b></div><span class="v">0.5 s</span></div>
+<div class="hb"><span>Full pull</span><div><b title="Full pull: 48 s" style="width: 100%; background: var(--grey)"></b></div><span class="v">48 s</span></div>
+<div class="axis" aria-hidden="true"><span>0</span><span>12</span><span>24</span><span>36</span><span>48&nbsp;s</span></div></div></div>
+<div class="card"><span class="kick">Harbor environment</span><div class="num">0.25<small>&nbsp;s</small></div><p>median Harbor environment start</p>
+<div class="chart" role="img" aria-label="A one second scale with the median marked at 0.25 seconds"><div class="scale"><i></i><b title="Median: 0.25 s"></b></div>
+<div class="scale-axis" aria-hidden="true"><span>0</span><span>0.25</span><span>0.5</span><span>0.75</span><span>1&nbsp;s</span></div></div></div>
+</div>
+</section>

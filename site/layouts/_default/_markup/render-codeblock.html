@@ -1,0 +1,5 @@
+{{- $names := dict "sh" "Terminal" "bash" "Terminal" "shell" "Terminal" "console" "Terminal" "json" "JSON" "python" "Python" "py" "Python" "yaml" "YAML" "toml" "TOML" "http" "HTTP" "text" "Output" -}}
+{{- $title := .Attributes.title | default .Attributes.filename | default (index $names (.Type | default "")) | default .Type | default "Code" -}}
+{{- /* A `text` block is a command's output: nothing to copy and run. */ -}}
+{{- $copy := ne (.Type | default "text") "text" -}}
+<div class="code"{{ if $copy }} data-copy{{ end }}><div class="code-h"><span>{{ $title }}</span>{{ if $copy }}<button class="copy" type="button"><span class="c1">Copy</span><span class="c2">Copied</span></button>{{ end }}</div><div class="code-b" data-src>{{ transform.Highlight .Inner (.Type | default "text") (dict "lineNos" false) }}</div></div>

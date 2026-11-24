@@ -1,9 +1,0 @@
-{{- /* External links open in a new tab. The page links nothing in the repo
-  (it is private, and its docs are not built), so a relative link is a
-  mistake and fails the build. */ -}}
-{{- $url := urls.Parse .Destination -}}
-{{- if and (not $url.IsAbs) (ne $url.Path "") -}}
-  {{- errorf "%s: relative link %q; the site is one page, so link with an absolute URL or #anchor" .PageInner.File.Path .Destination -}}
-{{- end -}}
-<a href="{{ .Destination | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if $url.IsAbs }}{{ if ne $url.Scheme "mailto" }} target="_blank" rel="noopener"{{ end }}{{ end }}>{{ .Text }}</a>
-{{- /* */ -}}
