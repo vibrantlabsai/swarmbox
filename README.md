@@ -1,6 +1,6 @@
 # swarmbox
 
-Async Python client for [swarmbox](https://swarmbox.vibrantlabs.com): open-source Sandboxes for RL rollouts, with a [Harbor](https://github.com/harbor-framework/harbor) environment provider.
+Async Python client for [swarmbox](https://swarmbox.vibrantlabs.com): Sandboxes for agentic RL rollouts and evals, with a [Harbor](https://github.com/harbor-framework/harbor) environment provider.
 
 Each trial gets a **World**: a **Sandbox** for the agent's workspace and one for every service the task needs, on one private network, started and torn down as one.
 
@@ -46,9 +46,12 @@ Each Harbor trial runs as one World, and each service in the task's compose file
 
 ```sh
 pip install 'swarmbox-sdk[harbor]'
-export SWARMBOX_URL=https://your-apiserver SWARMBOX_TOKEN=...
-harbor run -p path/to/task -a oracle -e swarmbox_sdk.harbor:SwarmboxEnvironment
+export SWARMBOX_URL=https://api.swarmbox.vibrantlabs.com   # or your own API server
+export SWARMBOX_TOKEN=...                                  # your token
+harbor run -p tasks/ -a oracle --environment-import-path swarmbox_sdk.harbor:SwarmboxEnvironment
 ```
+
+`tasks/` is a directory of Harbor tasks.
 
 A token is all the machine running Harbor needs: the provider uploads each task's files and swarmbox builds its image, tagged by a hash of those files, so a task whose files haven't changed is a lookup, not a rebuild.
 
@@ -59,7 +62,7 @@ To build on your own machine instead, set `SWARMBOX_REGISTRY` to a registry your
 | `url` | `SWARMBOX_URL` | `http://localhost:7700` |
 | `token` | `SWARMBOX_TOKEN` | none |
 | `registry` | `SWARMBOX_REGISTRY` | none: swarmbox builds the images |
-| `pull_registry` | `SWARMBOX_PULL_REGISTRY` | `registry`; `host.lima.internal:5001` when `registry` is `localhost:5001` |
+| `pull_registry` | `SWARMBOX_PULL_REGISTRY` | `registry` |
 | `platform` | `SWARMBOX_PLATFORM` | this machine's architecture (used only with `registry`) |
 | `ttl` | | `3h` |
 
@@ -69,9 +72,9 @@ More: [Run a Harbor job](https://github.com/vibrantlabsai/swarmbox/blob/main/doc
 
 ## Docs
 
-- Hosted test bed walkthrough, from token to rollouts: https://swarmbox.vibrantlabs.com (source: [`site/`](https://github.com/vibrantlabsai/swarmbox/tree/main/site))
-- [Developer docs](https://github.com/vibrantlabsai/swarmbox/blob/main/docs/README.md): the World spec, Worlds and Sandboxes, the Harbor provider.
-- Renamed from opendsec: [what to change](https://swarmbox.vibrantlabs.com/#if-you-used-opendsec).
+- [Quickstart](https://swarmbox.vibrantlabs.com/docs/quickstart/): the hosted test bed, from token to rollouts.
+- [Docs](https://swarmbox.vibrantlabs.com/docs/) and [API reference](https://swarmbox.vibrantlabs.com/api/http/): the Harbor provider, the SDK, the HTTP API and the World spec. Their source is [`docs/`](https://github.com/vibrantlabsai/swarmbox/blob/main/docs/README.md).
+- Renamed from opendsec: [what to change](https://swarmbox.vibrantlabs.com/docs/migrate-from-opendsec/).
 
 ## Contributing
 

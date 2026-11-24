@@ -18,7 +18,7 @@ docs:
     hugo server -s site --renderToMemory
 
 # Strict docs build: a broken link, a template error or any warning fails;
-# then every relative link in the repo's Markdown (docs/ isn't built).
+# then every relative link in the repo's Markdown, #fragments included.
 docs-check:
     hugo -s site --panicOnWarning --renderToMemory
     uv run --no-project python dev/check-doc-links.py
