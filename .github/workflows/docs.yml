@@ -1,12 +1,12 @@
 name: docs
 
-# Builds the site (site/, one page for API users) and publishes it to GitHub
-# Pages, which serves it at swarmbox.vibrantlabs.com. Runs on every change to
-# the site that lands on main.
+# Builds the site (site/, and docs/ as its docs section) and publishes it to
+# GitHub Pages, which serves it at swarmbox.vibrantlabs.com. Runs on every
+# change to either that lands on main.
 on:
   push:
     branches: [main]
-    paths: ["site/**", "dev/install-hugo.sh", ".github/workflows/docs.yml"]
+    paths: ["site/**", "docs/**", "dev/install-hugo.sh", ".github/workflows/docs.yml"]
   workflow_dispatch:
 
 permissions:

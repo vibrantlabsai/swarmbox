@@ -1,6 +1,14 @@
+---
+title: World spec
+description: Every field of the JSON that creates a swarmbox World, and what comes back.
+group: API reference
+weight: 2
+url: /api/world-spec/
+---
+
 # World spec
 
-The World spec is the JSON body of `POST /v1/worlds`: the Sandboxes to run together, and how long they may live. The platform validates the whole spec before it starts anything, and reports every problem in one error.
+The World spec is the JSON body of `POST /v1/worlds`: the Sandboxes to run together, and how long they may live. The platform checks every field on this page before it starts anything, and reports every problem in one error. A field it does not know is ignored without an error, so a misspelt optional field, such as `workingdir` for `workdir`, is silently dropped.
 
 ```json
 {
@@ -41,7 +49,7 @@ The World spec is the JSON body of `POST /v1/worlds`: the Sandboxes to run toget
 | `resources` | [Resources](#resources) | yes | CPU and memory limits |
 | `readiness` | [Readiness](#readiness) | no | A probe that must pass before the World is `ready`. Without one, a Sandbox counts as ready once it starts |
 | `egress` | `"none"` or `"public"` | no, default `"none"` | What the Sandbox may reach outside its World, described below |
-| `image_mode` | `"eager"`, `"lazy"` or `"auto"` | no, default: the node's | How the node loads the image, for A/B experiments. `eager` pulls it whole; `lazy` starts from converted EROFS layers and fails if the image is not converted; `auto` is lazy when converted, eager otherwise. Experimental: the platform environment's nodes have an image store and default to `auto`; the old test bed's nodes have none |
+| `image_mode` | `"eager"`, `"lazy"` or `"auto"` | no, default: the node's | How the node loads the image, for A/B experiments. `eager` pulls it whole; `lazy` starts from converted EROFS layers and fails if the image is not converted; `auto` is lazy when converted, eager otherwise. Experimental. On the hosted test bed the default is `auto` |
 
 Every name and alias must be unique across the whole World. Sandboxes of one World always reach each other by name and alias, whatever their `egress`.
 
@@ -89,60 +97,46 @@ A duration is a Go duration string (`"500ms"`, `"90s"`, `"1h30m"`) or a number o
 
 ```json
 {
-  "id": "lima-swarmbox.4ba267e85a471544",
+  "id": "node-1.4ba267e85a471544",
   "state": "ready",
   "expires_at": "2026-10-31T16:03:45.150380912-07:00",
   "sandboxes": {"env": "10.200.0.2", "main": "10.200.0.3"},
-  "timings": {"network_ms": 30, "images_ms": 0, "start_ms": 72, "ready_ms": 657, "total_ms": 760}
+  "timings": {"network_ms": 30, "images_ms": 0, "start_ms": 72, "ready_ms": 657, "total_ms": 760},
+  "images": {"env": {"mode": "eager"}, "main": {"mode": "eager"}},
+  "runtime": "runc"
 }
 ```
 
 | Field | Meaning |
 |---|---|
-| `id` | `<node>.<key>`. The apiserver routes every later call by the node part |
+| `id` | The World's ID, `<node>.<key>`. The API server routes every later call by the node part |
 | `state` | `creating`, `ready`, `running`, `stopped` or `failed`. See [the lifecycle](worlds-and-sandboxes.md#a-world-lives-and-dies-as-one) |
 | `reason` | Why the World ended, for example `stopped by user`, `ttl expired` or `sandbox env exited with code 1`. Present only once it has ended |
 | `expires_at` | When the TTL runs out |
 | `sandboxes` | Each Sandbox's IP address on the World's private network |
 | `timings` | Milliseconds spent creating it: network setup, image pulls, starting Sandboxes, readiness probes, and the total |
+| `images` | How each Sandbox's image was loaded: its `mode`, `eager` or `lazy`, and for a lazy image its `layers` and how many of them this create mounted, `layers_mounted`. Left out when there is nothing to report |
 | `runtime` | How the World's Sandboxes run: `runc` (containers on the node's kernel), or a stronger runtime such as `gvisor` when your User is configured for one |
 
-A World that has ended stays readable for 5 minutes, then `GET` returns 404.
+A World that has ended stays readable for 5 minutes, then `GET` returns `404`.
 
-Commands run in one Sandbox at a time: `POST /v1/worlds/{id}/sandboxes/{name}/exec`, described [below](#exec). An unknown World or Sandbox name returns 404.
+Commands run in one Sandbox at a time: `POST /v1/worlds/{id}/sandboxes/{name}/exec`, described in [the HTTP API](http-api.md#run-a-command). An unknown World or Sandbox name returns `404`.
 
-A World belongs to the User who created it. `GET /v1/worlds` lists only your Worlds, and every call on another User's World returns the same 404 as a World that does not exist.
-
-## Exec
-
-`POST /v1/worlds/{id}/sandboxes/{name}/exec` runs one command in a Sandbox and returns when it ends:
-
-```json
-{"command": ["bash", "-lc", "pytest -q"], "env": {"CI": "1"}, "workdir": "/app", "timeout": 1800}
-```
-
-| Field | Type | Required | Meaning |
-|---|---|---|---|
-| `command` | array of strings | yes | The process to run. No shell unless you start one |
-| `env` | object of strings | no | Extra environment variables, added to the Sandbox's |
-| `workdir` | string | no | Working directory. Defaults to the Sandbox's |
-| `timeout` | [duration](#durations) | no, default `10m` | How long the command may run before it is killed. There is no maximum, but the World's `ttl` still ends it |
-
-It returns `{"exit_code": 0, "stdout": "…", "stderr": "…"}`, plus `"timed_out": true` if the timeout killed it and `"truncated": true` if either stream passed 16 MiB (the rest is dropped). The request stays open for as long as the command runs, so give your HTTP client a read timeout longer than the command's; the SDK's `World.exec` does. If the request is closed first, the command is killed.
+A World belongs to the User who created it. `GET /v1/worlds` lists only your Worlds, and every call on another User's World returns the same `404` as a World that does not exist.
 
 ## Limits
 
-A deployment can limit what each User holds and how fast they create. A create over a limit returns `429` with the limit named, for example `{"error": "limit reached: 300 live Worlds for user alice"}`, and nothing is created.
+A deployment can limit what each User holds and how fast they create. The hosted test bed sets no such limit today. Where one is set, a create over it returns `429` with the limit named, for example `{"error": "limit reached: 300 live Worlds for user <name>"}`, and nothing is created.
 
 | Limit | Counts |
 |---|---|
 | Live Worlds | Your Worlds that are being created, ready or running, on every node. Ended Worlds don't count |
 | CPUs | The `cpus` declared by every Sandbox of your live Worlds, plus the World you are creating |
-| Creates per second | Your creates on one apiserver. Short bursts of twice the rate are allowed |
+| Creates per second | Your creates on one API server. Short bursts of twice the rate are allowed |
 
-Stop Worlds you are done with to make room. With Harbor, keep the number of concurrent trials (`-n`) below your live-World limit.
+Under a limit, stop Worlds you are done with to make room. With Harbor, keep the number of concurrent trials (`-n`) below your live-World limit.
 
-Separately, a node refuses new Worlds when it is busy (its CPUs under pressure, or memory short) or when the Worlds on it already declare far more than it has. Then a create returns `503` with `{"error": "no capacity: …"}` and the reason, nothing is created, and retrying shortly is safe. Worlds already running are never slowed down to make room.
+Whether or not limits are set, a node refuses new Worlds when it is busy (its CPUs under pressure, or memory short) or when the Worlds on it already declare far more than it has. Then a create returns `503` with `{"error": "no capacity: …"}` and the reason, nothing is created, and retrying shortly is safe. Worlds already running are never slowed down to make room.
 
 ## Built images
 
@@ -156,7 +150,7 @@ The platform builds an image from a Dockerfile and its build context, so you nee
 `{tag}` is 16 to 64 lower-case hex characters: the client's hash of the context (`swarmbox_sdk.context_tag`), so unchanged files map to the same image. Both return:
 
 ```json
-{"tag": "e91cdc9b2c917d6668513c1437197a32", "ref": "registry.example.com/swarmbox/builds/alice@sha256:639d117b…", "state": "ready", "build_ms": 57295}
+{"tag": "e91cdc9b2c917d6668513c1437197a32", "ref": "registry.example.com/swarmbox/builds/<user>@sha256:639d117b…", "state": "ready", "build_ms": 57295}
 ```
 
 | Field | Meaning |
@@ -171,5 +165,9 @@ A failed build can be retried with another `PUT`. A deployment with no builder a
 - **Yours.** Tags are per User: another User's `GET` of your tag is `404`, and nothing they upload can replace your image. The image itself is in a registry the nodes pull from without logging in, so it is not secret.
 - **Lazy, a little later.** An image is `ready` once pushed. The platform then converts it into the image store, after which Worlds start it without pulling; a World created before that pulls it.
 - **Fenced.** Builds reach the internet, and no private network, cloud metadata or platform host; build steps cannot reach each other either, whoever's they are. They pull only what anyone may pull: the platform's registry login is never theirs to use. Each User's builds run in their own buildkitd, so caches (cache mounts included) are never shared between Users.
-- **Limits.** A 1 GB context (unpacked) of at most 100,000 files, 20 minutes per build, 4 builds at once per User and 8 in all (more wait), with up to 16 running or waiting per User and 64 in all (more get `429`; retry later).
+- **Limits.**
+  - A build context of at most 1 GiB unpacked, in at most 100,000 files. A larger upload is refused with `413`.
+  - 20 minutes per build.
+  - 4 builds at once per User, and 8 across all Users. More wait their turn.
+  - 16 builds running or waiting per User, and 64 across all Users. More get `429`: retry later.
 - **User names.** A User whose name ends in a dash cannot own images (`400`): the name is part of the image's repository.

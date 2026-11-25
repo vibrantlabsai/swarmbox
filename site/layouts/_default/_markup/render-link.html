@@ -1,0 +1,23 @@
+{{- /* A relative link must name another page of docs/ by its file
+  (`world-spec.md#limits`), as GitHub needs it; it is rewritten to that page's
+  address here, and anything else relative fails the build. A link to the
+  live site's own host (params.host) is a link within the site. Every other
+  absolute link is external and opens in a new tab. */ -}}
+{{- $url := urls.Parse .Destination -}}
+{{- $href := .Destination -}}
+{{- $external := and $url.IsAbs (ne $url.Scheme "mailto") -}}
+{{- if and $url.IsAbs (eq $url.Host site.Params.host) -}}
+  {{- $external = false -}}
+  {{- $href = relURL (strings.TrimPrefix "/" $url.Path) -}}
+  {{- with $url.Fragment }}{{ $href = printf "%s#%s" $href . }}{{ end -}}
+{{- else if and (not $url.IsAbs) (ne $url.Path "") -}}
+  {{- $target := cond (eq $url.Path "README.md") (.PageInner.GetPage "/docs") (.PageInner.GetPage $url.Path) -}}
+  {{- if not $target -}}
+    {{- errorf "%s: relative link %q names no page; link another docs page by its .md file, or use an absolute URL" .PageInner.File.Path .Destination -}}
+  {{- else -}}
+    {{- $href = $target.RelPermalink -}}
+    {{- with $url.Fragment }}{{ $href = printf "%s#%s" $href . }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+<a href="{{ $href | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if $external }} target="_blank" rel="noopener"{{ end }}>{{ .Text }}</a>
+{{- /* */ -}}

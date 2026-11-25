@@ -1,9 +1,16 @@
+---
+title: Run a Harbor job
+description: Run a Harbor eval on swarmbox with each trial in its own World, the provider's options, and building images ahead of a run.
+group: Guides
+weight: 1
+---
+
 # Run a Harbor job on swarmbox
 
 Run a [Harbor](https://github.com/harbor-framework/harbor) eval on swarmbox, with each trial in its own World. The agent and the task stay the same; only the environment flag changes:
 
 ```sh
-uv run harbor run -p <task> -a <agent> -e swarmbox_sdk.harbor:SwarmboxEnvironment
+uv run harbor run -p <task> -a <agent> --environment-import-path swarmbox_sdk.harbor:SwarmboxEnvironment
 ```
 
 The provider, `swarmbox_sdk.harbor:SwarmboxEnvironment`, turns each trial into one World and each service in the task's compose file into one Sandbox in it.
@@ -12,12 +19,12 @@ This guide uses Harbor's own `hello-world` example. Any Harbor task directory or
 
 ## Before you start
 
-- A swarmbox apiserver and a token for it, exported as `SWARMBOX_URL` and `SWARMBOX_TOKEN`. For the hosted test bed, the [walkthrough](https://swarmbox.vibrantlabs.com) says how to get one.
-- The provider installed: `uv add 'swarmbox-sdk[harbor]'` in your project, or, in a checkout of this repo, `uv sync --extra harbor`.
+- A swarmbox API server and a token for it, exported as `SWARMBOX_URL` and `SWARMBOX_TOKEN`. For the hosted test bed, the [quickstart](quickstart.md) says how to get one.
+- The provider installed: `uv add 'swarmbox-sdk[harbor]'` in your project, or, in a checkout of this repo, `uv sync --extra harbor`. `uv add` installs the newest Harbor. The provider's tests run against Harbor 0.22.0, so add `harbor==0.22.0` as well to run what is tested.
 
 ## Run a task
 
-Fetch the example task at the Harbor version the provider is tested with:
+Fetch the example task from Harbor 0.22.0, the version the provider is tested with:
 
 ```sh
 git clone --depth 1 --branch v0.22.0 --filter=blob:none --sparse \
@@ -29,7 +36,7 @@ Run it with the oracle agent, which applies the task's reference solution:
 
 ```sh
 uv run harbor run -p /tmp/harbor/examples/tasks/hello-world \
-  -a oracle -e swarmbox_sdk.harbor:SwarmboxEnvironment -o jobs
+  -a oracle --environment-import-path swarmbox_sdk.harbor:SwarmboxEnvironment -o jobs
 ```
 
 The oracle scores 1.0. The job's results, logs and the provider's per-trial timings (`world_id`, image and create times) are under `jobs/`.
@@ -42,18 +49,18 @@ Every option can be set with `--ek key=value` on the Harbor command line, or wit
 
 | `--ek` key | Variable | Default | What it is |
 |---|---|---|---|
-| `url` | `SWARMBOX_URL` | `http://localhost:7700` | The apiserver |
-| `token` | `SWARMBOX_TOKEN` | — | Your API token |
-| `registry` | `SWARMBOX_REGISTRY` | — (swarmbox builds the images) | A registry this machine builds images for and pushes them to, instead: see below |
-| `pull_registry` | `SWARMBOX_PULL_REGISTRY` | `registry`; `host.lima.internal:5001` when `registry` is `localhost:5001` | The same registry, as the nodes reach it |
+| `url` | `SWARMBOX_URL` | `http://localhost:7700` | The API server |
+| `token` | `SWARMBOX_TOKEN` | none | Your API token |
+| `registry` | `SWARMBOX_REGISTRY` | none: swarmbox builds the images | A registry this machine builds images for and pushes them to, instead: see below |
+| `pull_registry` | `SWARMBOX_PULL_REGISTRY` | `registry` | The same registry, by the address the nodes reach it at, when that differs from yours |
 | `platform` | `SWARMBOX_PLATFORM` | This machine's architecture | With `registry`: the image platform, such as `linux/amd64`. It must match the nodes |
-| `ttl` | — | `3h` | Each trial World's lifetime limit, at most `24h`. Also the longest a command may run when Harbor sets no timeout for it, such as an agent's run: see below |
+| `ttl` | none | `3h` | Each trial World's lifetime limit, at most `24h`. Also the longest a command may run when Harbor sets no timeout for it, such as an agent's run: see below |
 
-For example, against a remote apiserver:
+For example, against an API server of your own:
 
 ```sh
-uv run harbor run -p tasks/ -a oracle -n 32 -e swarmbox_sdk.harbor:SwarmboxEnvironment \
-  --ek url=http://swarmbox.example.com:7700 -o jobs
+uv run harbor run -p tasks/ -a oracle -n 32 --environment-import-path swarmbox_sdk.harbor:SwarmboxEnvironment \
+  --ek url=https://swarmbox.example.com -o jobs
 ```
 
 ## Long agent runs
@@ -77,22 +84,23 @@ uv run python -m swarmbox_sdk.harbor.prebuild --registry myregistry.example.com 
 
 Images are keyed by a hash of everything that determines them, so each one built here is a cache hit when its trial starts. `prebuild.jsonl` has one line per image, failures included. With `--lazy-store DIR` (a read-write mount of the platform's image store, for its operators), it also converts each image so nodes can start it without pulling.
 
-## Use Marin's Harbor fork
+## Use the Marin fork of Harbor
 
-The provider also works with Marin's fork (`marin-community/harbor` 0.8.1). That fork names the flag differently:
-
-```sh
-uv run harbor run -p tasks/ -a oracle \
-  --environment-import-path swarmbox_sdk.harbor:SwarmboxEnvironment -o jobs
-```
+The provider also works with the Marin project's fork of Harbor (`marin-community/harbor` 0.8.1), which the [quickstart](quickstart.md) uses. Upstream Harbor also accepts `-e` for this flag; the fork does not, so these docs spell it out.
 
 ## If a trial won't start
 
 | Message | Cause | Fix |
 |---|---|---|
 | `no API token` | `SWARMBOX_TOKEN` is unset | Export it, or pass `--ek token=…` |
-| `node … unreachable` | The apiserver can't reach a node | Try again shortly; if it persists, tell the platform's operators |
+| `node … unreachable` | The API server can't reach a node | Try again shortly; if it persists, tell the platform's operators |
 | `UnsupportedCompose` | The task's compose file uses a key outside the supported subset | See below |
 | `network mode … is not supported yet` | The task asks for a network policy other than "no network" or "public" | Not supported yet |
 
-The provider translates only the compose keys Harbor tasks use: `image`, `build`, `command`, `environment`, `volumes`, `expose`, `networks`, `healthcheck` and `depends_on`. Any other key fails the trial before it starts rather than being silently dropped. A dropped key would leave the agent in a degraded setup that can still score, which is worse than a trial that refuses to run.
+The provider translates only the compose keys Harbor tasks use: `image`, `build`, `command`, `environment`, `volumes`, `expose`, `networks`, `healthcheck` and `depends_on`. Any other key fails the trial before it starts rather than being silently dropped. So do:
+
+- a top-level key other than `services`, such as `volumes` or `networks`;
+- a volume that is not a read-only bind of a file or directory of the task, given by a relative path (`./data:/data:ro`);
+- a network other than the default one;
+- a command Harbor asks to run as a user other than root.
+ A dropped key would leave the agent in a degraded setup that can still score, which is worse than a trial that refuses to run.

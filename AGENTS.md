@@ -1,13 +1,13 @@
 # swarmbox (SDK and docs)
 
-The public half of swarmbox, open-source Sandboxes for agentic RL rollouts and evals: the `swarmbox-sdk` Python package (the async client, and the Harbor environment provider as its `harbor` extra), the docs site at https://swarmbox.vibrantlabs.com, and the developer docs. The platform itself (API server, node agent, deploy) is in a separate repo. Use the terms in `docs/glossary.md`.
+The public, open-source half of swarmbox, Sandboxes for agentic RL rollouts and evals: the `swarmbox-sdk` Python package (the async client, and the Harbor environment provider as its `harbor` extra), the docs site at https://swarmbox.vibrantlabs.com, and the developer docs. The platform itself (API server, node agent, deploy) is in a separate repo. Use the terms in `docs/glossary.md`.
 
 ## Layout
 
 - `src/swarmbox_sdk/`: the client (`client.py`). `harbor/` is the Harbor provider, `swarmbox_sdk.harbor:SwarmboxEnvironment`; it imports Harbor and PyYAML, so nothing outside `harbor/` may import it.
 - `tests/`: the provider's tests (they run with the `harbor` extra).
-- `site/`: the Hugo site, one page (`site/content/_index.md`).
-- `docs/`: developer docs, Markdown not built into the site, linked by relative `.md` path.
+- `site/`: the Hugo site: layouts, styles (`site/static/css/site.css`), its script (`site/static/js/site.js`), and the landing page (`site/layouts/index.html`, with its copy in `site/content/_index.md`). Every page carries the waitlist form (`site/layouts/partials/modal.html`), which posts to `params.waitlistEndpoint` in `site/hugo.toml`; that endpoint accepts only the form's fields and choices as they are, so the two change together.
+- `docs/`: the docs and API reference, Markdown the site builds as its `/docs/` and `/api/` pages and GitHub renders as it is. Pages link each other by relative `.md` path.
 - `dev/`: `check-release.sh`, `check-doc-links.py`, `install-hugo.sh` (CI).
 
 ## Working here
@@ -20,7 +20,14 @@ The public half of swarmbox, open-source Sandboxes for agentic RL rollouts and e
 
 ## Docs
 
-Two tracks. **API users** (people given a token for the hosted test bed) get one page, `site/content/_index.md`: a walkthrough from token to rollouts, every command run against the test bed before it's published. **Developers** get `docs/`. A change to what a User sees (SDK, provider options, World spec) updates its page in the same change: the site page if the walkthrough touches it, and `docs/`. The site page and the walkthrough and reference pages in `docs/` open with one sentence on what the reader gets, and real code within the first screen; explanation pages and indexes are exempt.
+One set of pages, `docs/`, read in two places: on the site, and on GitHub. The site adds the landing page.
+
+- A page's front matter gives its `title`, its `group` in the site's menu (the groups and their order are `docGroups` in `site/hugo.toml`) and its `weight` within the group. API reference pages also set `url`, under `/api/`. Every page has a one-sentence `description`, for search engines and link previews. Optional: `steps: true` numbers the page's `##` headings as steps, and `aliases` lists old addresses that redirect to it. A new page is added to `docs/README.md`, the index, too.
+- `docs/quickstart.md` is the walkthrough for people given a token for the hosted test bed. Every command on it is run against the test bed before it's published; so is every example in the other pages.
+- The pages are plain Markdown, with no shortcodes and no raw HTML, because GitHub renders them too. A link to the site itself is written in full (`https://swarmbox.vibrantlabs.com/#waitlist`); the site turns it into a link within itself.
+- A change to what a User sees (SDK, provider options, World spec, HTTP API) updates its page in the same change.
+- The landing page, walkthroughs and reference pages open with one sentence on what the reader gets, and real code within the first screen; explanation pages and indexes are exempt.
+- The landing page's numbers are measurements: change one only with the run that produced the new figure.
 
 ## Releases
 

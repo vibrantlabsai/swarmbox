@@ -1,0 +1,10 @@
+{{ define "main" }}
+<div class="shell">
+{{ partial "sidebar.html" . }}
+<main class="doc" id="main">
+<div class="prose">
+{{ .Content }}
+</div>
+</main>
+</div>
+{{ end }}

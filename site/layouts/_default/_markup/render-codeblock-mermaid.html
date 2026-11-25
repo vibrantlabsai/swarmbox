@@ -1,0 +1,2 @@
+{{- .Page.Store.Set "mermaid" true -}}
+<figure class="fig"><pre class="mermaid">{{ .Inner | htmlEscape | safeHTML }}</pre>{{ with .Attributes.caption }}<figcaption>{{ . }}</figcaption>{{ end }}</figure>
