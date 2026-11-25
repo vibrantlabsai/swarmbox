@@ -12,7 +12,7 @@ swarmbox is the new name of opendsec, and it runs on a new platform at a new add
 | You have | Change it to |
 |---|---|
 | `https://api.opendsec.vibrantlabs.com` | `https://api.swarmbox.vibrantlabs.com` |
-| `opendsec-harbor==0.3.0` in your project | `swarmbox-sdk[harbor]==0.4.0` |
+| `opendsec-harbor==0.3.0` in your project | `swarmbox-sdk[harbor]==0.4.1` |
 | `--environment-import-path opendsec_harbor:OpenDSecEnvironment` | `--environment-import-path swarmbox_sdk.harbor:SwarmboxEnvironment` |
 | `OPENDSEC_URL`, `OPENDSEC_TOKEN` | `SWARMBOX_URL`, `SWARMBOX_TOKEN` |
 | `import opendsec` | `import swarmbox_sdk` |
