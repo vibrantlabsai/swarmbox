@@ -117,7 +117,7 @@ curl -s -X POST $SWARMBOX_URL/v1/worlds/$WORLD/sandboxes/main/exec \
 | `command` | array of strings | yes | The process to run and its arguments. No shell is added: to use one, run `["bash", "-lc", "…"]` |
 | `env` | object of strings | no | Extra environment variables, added to the Sandbox's |
 | `workdir` | string | no | Working directory. Defaults to the Sandbox's |
-| `timeout` | [duration](world-spec.md#durations) | no, default `10m` | How long the command may run before it is killed |
+| `timeout` | [duration](world-spec.md#durations) | no, default `10m` | How long the command may run before it is killed. There is no maximum, but the World's `ttl` still ends it |
 
 The call returns when the command ends:
 
@@ -129,6 +129,8 @@ The call returns when the command ends:
 | `truncated` | `true` if either output passed 16 MiB and the rest was dropped. Left out otherwise |
 
 A command that cannot start is a `500`, not an exit code: a program the image does not have, a `workdir` that does not exist, or an empty `command`.
+
+The request stays open for as long as the command runs, so give your HTTP client a read timeout longer than the command's; the SDK's `World.exec` does. If the request is closed first, the command is killed.
 
 The first command run in a World moves it from `ready` to `running`.
 

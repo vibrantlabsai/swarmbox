@@ -37,7 +37,7 @@ asyncio.run(main())
 
 - `Client.create_world(sandboxes, ttl)` returns once every Sandbox is ready, or raises `WorldFailed` if the platform couldn't deliver the World.
 - `Client.build_image(dir)` builds an image on the platform from a Dockerfile and its build context, and returns once it is ready (a lookup if those files were built before). Use its `ref` as a Sandbox's `image`. No Docker and no registry access needed.
-- `World.exec`, `upload` and `download` act in one Sandbox, by name.
+- `World.exec`, `upload` and `download` act in one Sandbox, by name. An exec is killed after its `timeout` (10 minutes if none is given); the request waits that long whatever the client's own timeout.
 - `get_world` and `list_worlds` look Worlds up.
 
 ## Harbor
@@ -64,7 +64,7 @@ To build on your own machine instead, set `SWARMBOX_REGISTRY` to a registry your
 | `registry` | `SWARMBOX_REGISTRY` | none: swarmbox builds the images |
 | `pull_registry` | `SWARMBOX_PULL_REGISTRY` | `registry` |
 | `platform` | `SWARMBOX_PLATFORM` | this machine's architecture (used only with `registry`) |
-| `ttl` | | `3h` |
+| `ttl` | | `3h`: each trial World's lifetime, and the longest an agent's run may take (Harbor's own agent timeout usually ends it first) |
 
 Tasks may use only the compose keys `image`, `build`, `command`, `environment`, `volumes`, `expose`, `networks`, `healthcheck` and `depends_on`; anything else fails the trial before it starts rather than running it wrong.
 

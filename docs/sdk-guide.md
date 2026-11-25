@@ -77,14 +77,13 @@ if result.exit_code != 0:
 
 A command that runs and fails is not an error: you get its exit code. A command that cannot start at all, such as a program the image does not have, raises `SwarmboxError`.
 
-A command that outlives its `timeout` (10 minutes unless you set one) is killed, and the result has `timed_out` set. In 0.4.0 the client has a limit of its own: it stops waiting for any request after 600 seconds and raises `httpx.ReadTimeout`. That is the same 10 minutes, so a command near the limit can end either way, and a longer `timeout=` alone is cut off by the client. For a long command, raise both:
+A command that outlives its `timeout` (10 minutes unless you set one) is killed, and the result has `timed_out` set. There is no maximum, only the World's `ttl`: for a long command, pass a longer `timeout=`, and `exec` waits for it whatever the client's own `timeout`.
 
 ```python
-# Seconds one request may take: longer than your longest command.
-async with swarmbox_sdk.Client(timeout=3700) as client:
-    ...
-    result = await world.exec("main", "make test", timeout=3600)
+result = await world.exec("main", "make test", timeout=3600)  # up to an hour
 ```
+
+Up to 0.4.0 the client stops waiting for any request after 600 seconds and raises `httpx.ReadTimeout`, so a longer `timeout=` alone is cut off. There, raise the client's as well: `swarmbox_sdk.Client(timeout=3700)`.
 
 ## Move files
 

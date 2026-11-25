@@ -42,7 +42,7 @@ swarmbox_sdk.Client(url=None, token=None, timeout=600, max_connections=100)
 |---|---|---|
 | `url` | `SWARMBOX_URL`, else `http://localhost:7700` | The API server |
 | `token` | `SWARMBOX_TOKEN` | Your API token. With none, the constructor raises `SwarmboxError` |
-| `timeout` | `600` | Seconds the client waits for one request before it raises `httpx.ReadTimeout`. A create or an exec lasts as long as the work it waits for, so set this above your longest command |
+| `timeout` | `600` | Seconds the client waits for one request before it raises `httpx.ReadTimeout`. A create lasts as long as the work it waits for, so set this above your slowest one. An `exec` waits at least as long as its own `timeout`: see [`World`](#world) |
 | `max_connections` | `100` | Connections kept open. Each create or exec in flight holds one, so more than this many at once wait in the client |
 
 Use it as `async with Client() as client:`, or call `await client.close()` when you are done.
@@ -108,7 +108,7 @@ A live World, returned by `create_world` and `get_world`. Its methods take the n
 
 | Method | Returns | Does |
 |---|---|---|
-| `await exec(sandbox, command, *, env=None, workdir=None, timeout=None)` | [`ExecResult`](#execresult) | Runs a command. A string runs under `bash -lc`; a list runs as it is. `timeout` is in seconds, and the platform kills the command after it (10 minutes if unset) |
+| `await exec(sandbox, command, *, env=None, workdir=None, timeout=None)` | [`ExecResult`](#execresult) | Runs a command. A string runs under `bash -lc`; a list runs as it is. `timeout` is in seconds, and the platform kills the command after it (10 minutes if unset). There is no maximum |
 | `await upload(sandbox, local, remote)` | `None` | Copies a local file or directory to `remote` inside the Sandbox. A directory's contents land in `remote` |
 | `await download(sandbox, remote, local)` | `None` | Copies the file or directory at `remote` inside the Sandbox to `local`. At most 16 MiB in one call |
 | `await refresh()` | `World` | Reads the World's state again |
@@ -116,7 +116,7 @@ A live World, returned by `create_world` and `get_world`. Its methods take the n
 
 If `exec` fails because the World has failed, it raises `WorldFailed` with the reason, not the bare request error.
 
-In 0.4.0 the client's own `timeout` (600 seconds) ends an `exec` with `httpx.ReadTimeout` at the moment the platform's default would kill the command, and before any longer `timeout=` you pass. For a command that may run longer than a few minutes, pass `timeout=` here and a larger `timeout` to [`Client`](#client).
+`exec` waits for the answer as long as the command may run and a minute more, whatever the client's own `timeout`, so a long command needs only `timeout=` here. Cancelling the call closes the request, and the platform then kills the command. Up to 0.4.0 the client's `timeout` (600 seconds) ended an `exec` with `httpx.ReadTimeout` before any longer `timeout=` you passed; there, pass a larger `timeout` to [`Client`](#client) as well.
 
 `upload` and `download` need `sh` and `tar` in the Sandbox's image.
 

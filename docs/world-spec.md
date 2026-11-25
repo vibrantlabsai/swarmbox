@@ -120,7 +120,7 @@ A duration is a Go duration string (`"500ms"`, `"90s"`, `"1h30m"`) or a number o
 
 A World that has ended stays readable for 5 minutes, then `GET` returns `404`.
 
-Commands run in one Sandbox at a time: `POST /v1/worlds/{id}/sandboxes/{name}/exec`. An unknown World or Sandbox name returns `404`.
+Commands run in one Sandbox at a time: `POST /v1/worlds/{id}/sandboxes/{name}/exec`, described in [the HTTP API](http-api.md#run-a-command). An unknown World or Sandbox name returns `404`.
 
 A World belongs to the User who created it. `GET /v1/worlds` lists only your Worlds, and every call on another User's World returns the same `404` as a World that does not exist.
 
