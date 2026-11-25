@@ -33,7 +33,7 @@ Then create a project with Harbor and the swarmbox provider for it. This walkthr
 mkdir swarmbox-trial && cd swarmbox-trial
 uv init --bare --python 3.12
 uv add "harbor @ git+https://github.com/marin-community/harbor@e96b6dcca1513e97e43523eaa971a85c68fcedae" \
-  "swarmbox-sdk[harbor]==0.4.0" huggingface-hub pyarrow
+  "swarmbox-sdk[harbor]==0.4.1" huggingface-hub pyarrow
 ```
 
 ## Point it at the test bed
